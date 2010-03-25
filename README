@@ -1,0 +1,10 @@
+PHPTools
+========
+
+Namespacer
+----------
+
+This tool is to help facilitate the conversion of PHP5 Prefixed code
+(ZF or PEAR standards code) to PHP 5.3 Namespaced code.
+
+.. more info ..
