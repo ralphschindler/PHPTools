@@ -7,6 +7,11 @@ class CLIRunner
 
     public static function main()
     {
+        if (($cwd = getenv('CURRENT_WORKING_DIRECTORY'))) {
+            if (!file_exists($cwd)) exit('Invalid CURRENT_WORKING_DIRECTORY');
+            chdir($cwd);
+        }
+        
         $cliRunner = new self();
         $cliRunner->run();
     }

@@ -7,6 +7,7 @@ class Namespacer
 {
     
     protected $_libraryDirectory = null;
+    protected $_libraryDirectoryOriginal = null;
     protected $_filePath = null;
     protected $_directoryFilter = null;
     protected $_outputPath = null;
@@ -34,7 +35,8 @@ class Namespacer
     {
         switch ($optionName) {
             case 'libraryDirectory':
-                $this->_libraryDirectory = realpath($optionValue);
+                $this->_libraryDirectoryOriginal = $optionValue;
+                $this->_libraryDirectory = realpath($this->_libraryDirectoryOriginal);
                 if (!file_exists($this->_libraryDirectory)) {
                     throw new \InvalidArgumentException('Library directory provided does not exist (' . $this->_libraryDirectory . ')');
                 }
@@ -112,7 +114,7 @@ class Namespacer
                     $xmlWriter->setIndentString('   ');
                     $xmlWriter->startDocument('1.0');
                     $xmlWriter->startElement('mappedClasses');
-                    $xmlWriter->writeAttribute('libraryDirectory', $this->_libraryDirectory);
+                    $xmlWriter->writeAttribute('libraryDirectory', $this->_libraryDirectoryOriginal);
                 }
             }
             
@@ -149,9 +151,10 @@ class Namespacer
             
             if ($this->_outputPath) {
 
-                foreach (new \RecursiveIteratorIterator($it, \RecursiveIteratorIterator::SELF_FIRST) as $realFilePath => $fileinfo) {
-                    if ($fileinfo->isFile()) {
-                        $fileNameProc = $this->_fileRegistry->findByOriginalFilePath($realFilePath);
+                foreach (new \RecursiveIteratorIterator($it, \RecursiveIteratorIterator::SELF_FIRST) as $realFilePath => $fileInfo) {
+                    if ($fileInfo->isFile()) {
+                        $relativeFilePath = substr($realFilePath, strlen($this->_libraryDirectory)+1);
+                        $fileNameProc = $this->_fileRegistry->findByOriginalRelativeFilePath($relativeFilePath);
                         if ($fileNameProc) {
                             $fileContentProcessor = new FileContentProcessor($fileNameProc, $this->_prefixes, $this->_fileRegistry);
                             $this->_fileRegistry->registerFileContentProcessor($fileContentProcessor);
@@ -195,7 +198,8 @@ class Namespacer
         while ($reader->read()) {
             if ($reader->name == 'mappedClasses' && $reader->nodeType == XMLReader::ELEMENT) {
                 $libraryDirectory = $reader->getAttribute('libraryDirectory');
-                if ($libraryDirectory != $this->_libraryDirectory) {
+                $realLibraryDirectory = realpath($libraryDirectory);
+                if ($realLibraryDirectory != $this->_libraryDirectory) {
                     throw new \UnexpectedValueException('The libraryDirectory located in the map file is not the same as the one provided for execution.');
                 }
                 continue;
