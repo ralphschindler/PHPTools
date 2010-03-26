@@ -1,6 +1,7 @@
 <?php
 
 namespace PHPTools\Namespacer;
+use XMLReader, XMLWriter;
 
 class Namespacer
 {
@@ -96,34 +97,45 @@ class Namespacer
                 $it = new RecursiveFilterIterator($rdi, $this->_directoryFilter);
             }
             
+            $buildFileMapFromDirectory = true;
+            
             if ($this->_mapPath) {
-                $xmlWriter = new \XMLWriter();
-                $xmlWriter->openURI($this->_mapPath . '/PHPNamespacer-MappedClasses.xml');
-                $xmlWriter->setIndent(true);
-                $xmlWriter->setIndentString('   ');
-                $xmlWriter->startDocument('1.0');
-                $xmlWriter->startElement('MappedClasses');
-                $xmlWriter->writeAttribute('libraryPath', $this->_libraryDirectory);
+                $mapFilePath = $this->_mapPath . '/PHPNamespacer-MappedClasses.xml';
+                $mapFileRealPath = realpath($mapFilePath);
+                if (file_exists($mapFileRealPath)) {
+                    $this->_loadMapFile($mapFileRealPath);
+                    $buildFileMapFromDirectory = false;
+                } else {
+                    $xmlWriter = new XMLWriter();
+                    $xmlWriter->openURI($mapFilePath);
+                    $xmlWriter->setIndent(true);
+                    $xmlWriter->setIndentString('   ');
+                    $xmlWriter->startDocument('1.0');
+                    $xmlWriter->startElement('mappedClasses');
+                    $xmlWriter->writeAttribute('libraryDirectory', $this->_libraryDirectory);
+                }
             }
             
-            foreach (new \RecursiveIteratorIterator($rdi, \RecursiveIteratorIterator::SELF_FIRST) as $realFilePath => $fileInfo) {
-                $relativeFilePath = substr($realFilePath, strlen($this->_libraryDirectory)+1);
-                if (preg_match('#(\.svn|_svn|\.git)#', $relativeFilePath)) {
-                    continue;
-                }
-                $fileNameProcessor = new FileNameProcessor($relativeFilePath, $this->_libraryDirectory);
-                // add only classes that contain a matching prefix
-                if (!$this->_prefixes || preg_match('#^' . implode('|', $this->_prefixes) . '#', $fileNameProcessor->getOriginalClassName())) {
-                    $this->_fileRegistry->registerFileNameProcessor($fileNameProcessor);
-                    if (isset($xmlWriter)) {
-                        $xmlWriter->startElement('MappedClass');
-                        $xmlWriter->writeElement('originalRelativeFilePath', $fileNameProcessor->getOriginalRelativeFilePath());
-                        $xmlWriter->writeElement('originalClassName', $fileNameProcessor->getOriginalClassName());
-                        $xmlWriter->writeElement('newRelativeFilePath', $fileNameProcessor->getNewRelativeFilePath());
-                        $xmlWriter->writeElement('newNamespace', $fileNameProcessor->getNewNamespace());
-                        $xmlWriter->writeElement('newClassName', $fileNameProcessor->getNewClassName());
-                        $xmlWriter->writeElement('newFullyQualifiedName', $fileNameProcessor->getNewFullyQualifiedName());
-                        $xmlWriter->endElement();
+            if ($buildFileMapFromDirectory) {
+                foreach (new \RecursiveIteratorIterator($rdi, \RecursiveIteratorIterator::SELF_FIRST) as $realFilePath => $fileInfo) {
+                    $relativeFilePath = substr($realFilePath, strlen($this->_libraryDirectory)+1);
+                    if (preg_match('#(\.svn|_svn|\.git)#', $relativeFilePath) || !preg_match('#\.php$#', $relativeFilePath)) {
+                        continue;
+                    }
+                    $fileNameProcessor = new FileNameProcessor($relativeFilePath, $this->_libraryDirectory);
+                    // add only classes that contain a matching prefix
+                    if (!$this->_prefixes || preg_match('#^' . implode('|', $this->_prefixes) . '#', $fileNameProcessor->getOriginalClassName())) {
+                        $this->_fileRegistry->registerFileNameProcessor($fileNameProcessor);
+                        if (isset($xmlWriter)) {
+                            $xmlWriter->startElement('mappedClass');
+                            $xmlWriter->writeElement('originalRelativeFilePath', $fileNameProcessor->getOriginalRelativeFilePath());
+                            $xmlWriter->writeElement('originalClassName', $fileNameProcessor->getOriginalClassName());
+                            $xmlWriter->writeElement('newRelativeFilePath', $fileNameProcessor->getNewRelativeFilePath());
+                            $xmlWriter->writeElement('newNamespace', $fileNameProcessor->getNewNamespace());
+                            $xmlWriter->writeElement('newClassName', $fileNameProcessor->getNewClassName());
+                            $xmlWriter->writeElement('newFullyQualifiedName', $fileNameProcessor->getNewFullyQualifiedName());
+                            $xmlWriter->endElement();
+                        }
                     }
                 }
             }
@@ -164,6 +176,45 @@ class Namespacer
 
     }
 
+    protected function _loadMapFile($mapFile)
+    {
+        echo 'Loading a map file found at ' . $mapFile . PHP_EOL;
+        $mappedClassElementNames = array(
+            'originalRelativeFilePath',
+            'originalClassName',
+            'newRelativeFilePath',
+            'newNamespace',
+            'newClassName',
+            'newFullyQualifiedName',
+            );
+        $reader = new XMLReader();
+        $reader->open($mapFile);
+
+        $map = array();
+        while ($reader->read()) {
+            if ($reader->name == 'mappedClasses' && $reader->nodeType == XMLReader::ELEMENT) {
+                $libraryDirectory = $reader->getAttribute('libraryDirectory');
+                if ($libraryDirectory != $this->_libraryDirectory) {
+                    throw new \UnexpectedValueException('The libraryDirectory located in the map file is not the same as the one provided for execution.');
+                }
+                continue;
+            }
+            if ($reader->name == 'mappedClass' && $reader->nodeType == XMLReader::ELEMENT) {
+                $mappedClass = array();
+                
+                foreach ($reader->expand()->childNodes as $domNode) {
+                    if (in_array($domNode->nodeName, $mappedClassElementNames)) {
+                        $mappedClass[$domNode->nodeName] = $domNode->nodeValue;
+                    }
+                }
+
+                $fileNameProcessor = new FileNameProcessor($mappedClass, $libraryDirectory);
+                $this->_fileRegistry->registerFileNameProcessor($fileNameProcessor);
+                $reader->next();
+            }
+        }
+        
+    }
     
     protected function _displayInfo($infoArray)
     {

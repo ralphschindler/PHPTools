@@ -107,6 +107,13 @@ class FileContentProcessor
                 $context = null;
             }
             
+            // mostly for debugging
+            $surroundingTokens = array();
+            $surroundingTokens[-2] = (isset($this->_originalTokens[$tokenNumber - 2])) ? $this->_originalTokens[$tokenNumber - 2] : null;
+            $surroundingTokens[-1] = (isset($this->_originalTokens[$tokenNumber - 1])) ? $this->_originalTokens[$tokenNumber - 1] : null;
+            $surroundingTokens[1]  = (isset($this->_originalTokens[$tokenNumber + 1])) ? $this->_originalTokens[$tokenNumber + 1] : null;
+            $surroundingTokens[2]  = (isset($this->_originalTokens[$tokenNumber + 2])) ? $this->_originalTokens[$tokenNumber + 2] : null;
+            
             switch ($tokenName) {
                 case 'T_OPEN_TAG':
                     if ($tokenNumber < 3) {
@@ -181,10 +188,12 @@ class FileContentProcessor
                             break;
                         case 'INSIDE_FUNCTION_SIGNATURE':
                             $safeWords = array('true', 'false', 'null', 'self', 'parent', 'static');
-                            $previousToken = $this->_originalTokens[$tokenNumber -1];
-                            if (!in_array($token[1], $safeWords) && (is_array($previousToken) && $previousToken[1] != '::')) {
-                                $this->_registerInterestingToken('consumedClass', $tokenNumber);
+                            $previousToken = $surroundingTokens[-1];
+                            if (in_array($token[1], $safeWords)
+                                || (is_array($previousToken) && $previousToken[1] == '::')) {
+                                break;
                             }
+                            $this->_registerInterestingToken('consumedClass', $tokenNumber);
                             break;
                         case 'INSIDE_CATCH_STATEMENT':
                             $this->_registerInterestingToken('consumedClass', $tokenNumber);

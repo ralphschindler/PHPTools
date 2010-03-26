@@ -105,7 +105,7 @@ and body code, and docblocks and convert those to known translations.
 
 Usage:
     (Option should be passed in a form that php's getopt() can parse.)
-    php path/to/Namespace/Namespacer.php [options]
+    php path/to/php-namespacer.php [options]
 
 Options:
     -h, --help
