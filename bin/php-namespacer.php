@@ -13,4 +13,4 @@ if (!class_exists('SplClassLoader')) {
 }
 
 $loader->register();
-$cliRunner = \PHPTools\Namespacer\CLIRunner::main();
+\PHPTools\Namespacer\CLIRunner::main();

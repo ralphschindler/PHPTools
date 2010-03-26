@@ -4,7 +4,7 @@ namespace PHPTools\Namespacer;
 
 class CLIRunner
 {
-    
+
     public static function main()
     {
         $cliRunner = new self();
@@ -18,61 +18,64 @@ class CLIRunner
         }
     }
     
-    public function run()
+    public function run($options = array())
     {
         $namespacer = new Namespacer();
-        $this->_parseOptions($namespacer);
+        $this->_parseOptions($namespacer, $options);
     }
     
-    protected function _parseOptions(Namespacer $namespacer)
+    protected function _parseOptions(Namespacer $namespacer, array $options = array())
     {
-        $usersOptions = getopt(
-            'h::l::d::o::p::s::m::',
-            array(
-                'help::',
-                'lib::',
-                'library-directory::',
-                'dir::',
-                'directory-filter::',
-                'out::',
-                'output-path::',
-                'prefix::',
-                'prefixes::',
-                'stats::',
-                'show-statistics::',
-                'map::',
-                'map-path::'
-                )
-            );
-
-        $userToOfficialNames = array(
-            'h' => 'help',
-            'help' => 'help',
-            'l' => 'libraryDirectory',
-            'lib' => 'libraryDirectory', 
-            'library-directory' => 'libraryDirectory',
-            'd' => 'directoryFilter',
-            'dir' => 'directoryFilter',
-            'directory-filter' => 'directoryFilter',
-            'o' => 'outputPath',
-            'out' => 'outputPath',
-            'output-path' => 'outputPath',
-            'p' => 'prefixes',
-            'prefix' => 'prefixes',
-            'prefixes' => 'prefixes',
-            's' => 'showStatistics',
-            'stats' => 'showStatistics',
-            'show-statistics' => 'showStatistics',
-            'm' => 'mapPath',
-            'map' => 'mapPath',
-            'map-path' => 'mapPath'
-            );
+        if (!$options) {
         
-        $options = array();
-        
-        foreach ($userToOfficialNames as $userOptionName => $officialName) {
-            if (isset($usersOptions[$userOptionName])) {
-                $options[$officialName] = $usersOptions[$userOptionName];
+            $usersOptions = getopt(
+                'h::l::d::o::p::s::m::',
+                array(
+                    'help::',
+                    'lib::',
+                    'library-directory::',
+                    'dir::',
+                    'directory-filter::',
+                    'out::',
+                    'output-path::',
+                    'prefix::',
+                    'prefixes::',
+                    'stats::',
+                    'show-statistics::',
+                    'map::',
+                    'map-path::'
+                    )
+                );
+    
+            $userToOfficialNames = array(
+                'h' => 'help',
+                'help' => 'help',
+                'l' => 'libraryDirectory',
+                'lib' => 'libraryDirectory', 
+                'library-directory' => 'libraryDirectory',
+                'd' => 'directoryFilter',
+                'dir' => 'directoryFilter',
+                'directory-filter' => 'directoryFilter',
+                'o' => 'outputPath',
+                'out' => 'outputPath',
+                'output-path' => 'outputPath',
+                'p' => 'prefixes',
+                'prefix' => 'prefixes',
+                'prefixes' => 'prefixes',
+                's' => 'showStatistics',
+                'stats' => 'showStatistics',
+                'show-statistics' => 'showStatistics',
+                'm' => 'mapPath',
+                'map' => 'mapPath',
+                'map-path' => 'mapPath'
+                );
+            
+            $options = array();
+            
+            foreach ($userToOfficialNames as $userOptionName => $officialName) {
+                if (isset($usersOptions[$userOptionName])) {
+                    $options[$officialName] = $usersOptions[$userOptionName];
+                }
             }
         }
         

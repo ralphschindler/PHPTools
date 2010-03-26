@@ -16,7 +16,7 @@ class RecursiveFilterIterator extends \RecursiveFilterIterator
      */
     public function __construct(\RecursiveIterator $iterator, $filter, $topDirectory = null)
     {
-        $this->_filter = $filter;
+        $this->_filter = str_replace(array('\\', '/'), DIRECTORY_SEPARATOR, $filter);
         if ($topDirectory == null) {
             $iterator->rewind();
             $this->_topDirectory = (string) $iterator->current()->getPath();
@@ -29,15 +29,16 @@ class RecursiveFilterIterator extends \RecursiveFilterIterator
     
     public function accept()
     {
-        if ($this->isDot()) {
+        $relativeFileName = substr($this->current()->getRealPath(), strlen($this->_topDirectory)+1);
+        
+        if ($this->isDot() || preg_match('#(\.svn|_svn|\.git)#', $relativeFileName)) {
             return false;
         }
         
         if ($this->isDir()) {
             return true;
         }
-        
-        $relativeFileName = substr($this->current()->getRealPath(), strlen($this->_topDirectory)+1);
+
         if (preg_match('#^' . preg_quote($this->_filter) . '#', $relativeFileName)) {
             return true;
         } else {

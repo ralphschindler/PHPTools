@@ -24,7 +24,7 @@ class FileNameProcessor
     
     public function getOriginalFilePath()
     {
-        return rtrim($this->_libraryPath, '/') . '/' . $this->_originalRelativeFilePath;
+        return rtrim($this->_libraryPath, '/\\') . DIRECTORY_SEPARATOR . $this->_originalRelativeFilePath;
     }
     
     public function getOriginalRelativeFilePath()

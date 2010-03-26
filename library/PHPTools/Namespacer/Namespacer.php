@@ -106,8 +106,11 @@ class Namespacer
                 $xmlWriter->writeAttribute('libraryPath', $this->_libraryDirectory);
             }
             
-            foreach (new \RecursiveIteratorIterator($rdi) as $realFilePath => $fileInfo) {
+            foreach (new \RecursiveIteratorIterator($rdi, \RecursiveIteratorIterator::SELF_FIRST) as $realFilePath => $fileInfo) {
                 $relativeFilePath = substr($realFilePath, strlen($this->_libraryDirectory)+1);
+                if (preg_match('#(\.svn|_svn|\.git)#', $relativeFilePath)) {
+                    continue;
+                }
                 $fileNameProcessor = new FileNameProcessor($relativeFilePath, $this->_libraryDirectory);
                 // add only classes that contain a matching prefix
                 if (!$this->_prefixes || preg_match('#^' . implode('|', $this->_prefixes) . '#', $fileNameProcessor->getOriginalClassName())) {
@@ -125,7 +128,7 @@ class Namespacer
                 }
             }
             
-            foreach (new \RecursiveIteratorIterator($it) as $realFilePath => $fileinfo) {
+            foreach (new \RecursiveIteratorIterator($it, \RecursiveIteratorIterator::SELF_FIRST) as $realFilePath => $fileinfo) {
                 if ($fileinfo->isFile()) {
                     $fileNameProc = $this->_fileRegistry->findByOriginalFilePath($realFilePath);
                     if ($fileNameProc) {
