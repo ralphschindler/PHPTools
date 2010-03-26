@@ -140,24 +140,25 @@ class Namespacer
                 }
             }
             
-            foreach (new \RecursiveIteratorIterator($it, \RecursiveIteratorIterator::SELF_FIRST) as $realFilePath => $fileinfo) {
-                if ($fileinfo->isFile()) {
-                    $fileNameProc = $this->_fileRegistry->findByOriginalFilePath($realFilePath);
-                    if ($fileNameProc) {
-                        $fileContentProcessor = new FileContentProcessor($fileNameProc, $this->_prefixes, $this->_fileRegistry);
-                        $this->_fileRegistry->registerFileContentProcessor($fileContentProcessor);
-                    }
-                }
-            }
-            
             if (isset($xmlWriter)) {
                 $xmlWriter->endElement();
                 $xmlWriter->endDocument();
                 $xmlWriter->flush();
+                echo 'Number of classes written to map file: ' . count($this->_fileRegistry) . PHP_EOL;
             }
             
             if ($this->_outputPath) {
 
+                foreach (new \RecursiveIteratorIterator($it, \RecursiveIteratorIterator::SELF_FIRST) as $realFilePath => $fileinfo) {
+                    if ($fileinfo->isFile()) {
+                        $fileNameProc = $this->_fileRegistry->findByOriginalFilePath($realFilePath);
+                        if ($fileNameProc) {
+                            $fileContentProcessor = new FileContentProcessor($fileNameProc, $this->_prefixes, $this->_fileRegistry);
+                            $this->_fileRegistry->registerFileContentProcessor($fileContentProcessor);
+                        }
+                    }
+                }
+                
                 $this->_fileRegistry->setIterationType(FileRegistry::ITERATE_CONTENTS);
                 foreach ($this->_fileRegistry as $fileContentProc) {
                     $fileNameProc = $this->_fileRegistry->getFileNameProcessorForContentProcessor($fileContentProc);

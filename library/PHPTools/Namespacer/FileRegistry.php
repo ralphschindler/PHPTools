@@ -2,7 +2,7 @@
 
 namespace PHPTools\Namespacer;
 
-class FileRegistry implements \IteratorAggregate
+class FileRegistry implements \IteratorAggregate, \Countable
 {
 
     const ITERATE_NAMES = 'iterateNames';
@@ -106,6 +106,11 @@ class FileRegistry implements \IteratorAggregate
             default:
                 return new \ArrayIterator($this->_fileNameConverters);
         }
+    }
+    
+    public function count()
+    {
+        return count($this->_fileNameProcessors);
     }
     
 }
