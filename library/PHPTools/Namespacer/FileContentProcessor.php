@@ -303,10 +303,19 @@ class FileContentProcessor
                             $newConsumedClass = '\\' . str_replace('_', '\\', $token[1]);
                         }
                         
-                        if (isset($uses['translations']) && $uses['translations']) {
+                        if (isset($uses['translations']) && $uses['translations'] && $newConsumedClass{0} == '\\') {
                             $translationSearchClass = ltrim($newConsumedClass, '\\');
                             if (array_key_exists($translationSearchClass, $uses['translations'])) {
                                 $newConsumedClass = $uses['translations'][$translationSearchClass];
+                            }
+                        }
+                        
+                        if (isset($uses['declarations']) && $uses['declarations'] && $newConsumedClass{0} == '\\') {
+                            $declarationSearchClass = ltrim($newConsumedClass, '\\');
+                            foreach ($uses['declarations'] as $declarationSearchMatch) {
+                                if (strpos($declarationSearchClass, $declarationSearchMatch) === 0) {
+                                    $newConsumedClass = substr($declarationSearchMatch, strrpos($declarationSearchMatch, '\\')+1) . substr($declarationSearchClass, strlen($declarationSearchMatch));
+                                }
                             }
                         }
                         
