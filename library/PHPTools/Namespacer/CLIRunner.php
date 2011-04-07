@@ -92,8 +92,9 @@ class CLIRunner
         try {
             $namespacer->setOptions($options);
             $namespacer->convert();
-        } catch (\Exception $e) {
-            echo 'Exception caught ' . get_class($e) . ' : ' . $e->getMessage();
+        } catch(\Exception $e) {
+            echo 'Exception caught ' . get_class($e) . ' : ' . $e->getMessage() . PHP_EOL;
+            $this->_showHelp();
             exit(1);
         }
 
