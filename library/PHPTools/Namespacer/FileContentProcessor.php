@@ -250,7 +250,15 @@ class FileContentProcessor
                 if ((strpos($consumedClassName, '\\') !== false) && (strpos($consumedClassName, $namespace) !== 0)) {
                     $consumedClassFileNameProc = $this->_fileRegistry->findByNewFullyQualifiedName($consumedClassName);
                     $uses['declarations'][] = $ccn = $consumedClassFileNameProc->getNewNamespace();
-                    $uses['translations'][$consumedClassName] = substr($ccn, strrpos($ccn, '\\')+1) . '\\'
+                    
+                    $cutStart = strrpos($ccn, '\\');
+                    if (false === $cutStart) {
+                        $cutStart = 0;
+                    } else {
+                        ++$cutStart;
+                    }
+                    
+                    $uses['translations'][$consumedClassName] = substr($ccn, $cutStart) . '\\'
                         . str_replace($ccn . '\\', '', $consumedClassFileNameProc->getNewFullyQualifiedName());
                 }
             }
