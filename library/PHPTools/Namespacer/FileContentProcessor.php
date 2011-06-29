@@ -314,7 +314,13 @@ class FileContentProcessor
                             $declarationSearchClass = ltrim($newConsumedClass, '\\');
                             foreach ($uses['declarations'] as $declarationSearchMatch) {
                                 if (strpos($declarationSearchClass, $declarationSearchMatch) === 0) {
-                                    $newConsumedClass = substr($declarationSearchMatch, strrpos($declarationSearchMatch, '\\')+1) . substr($declarationSearchClass, strlen($declarationSearchMatch));
+                                    $cutStart = strrpos($declarationSearchMatch, '\\');
+                                    if (false === $cutStart) {
+                                        $cutStart = 0;
+                                    } else {
+                                        ++$cutStart;
+                                    }
+                                    $newConsumedClass = substr($declarationSearchMatch, $cutStart) . substr($declarationSearchClass, strlen($declarationSearchMatch));
                                 }
                             }
                         }
