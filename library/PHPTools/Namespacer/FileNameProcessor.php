@@ -117,8 +117,8 @@ class FileNameProcessor
             'throw','try','use','var','while','xor'
             );
         
-        if (in_array($className, $reservedWords)) {
-            $className = $className . 'CLASS';
+        if (in_array(\mb_strtolower($className), $reservedWords)) {
+            $className = $className . substr($this->_newNamespace, strrpos($this->_newNamespace, '\\') + 1);
         }
         
         return $className;
