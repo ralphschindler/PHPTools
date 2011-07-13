@@ -299,8 +299,10 @@ class FileContentProcessor
                         break;
                     case 'consumedClass':
                         $origConsumedClassName = $token[1];
-                        $fileNameProc = $this->_fileRegistry->findByOriginalClassName($origConsumedClassName);
-                        if ($fileNameProc) {
+
+                        if (in_array($origConsumedClassName, array("self", "static"))) {
+                            $newConsumedClass = $origConsumedClassName;
+                        } elseif (($fileNameProc = $this->_fileRegistry->findByOriginalClassName($origConsumedClassName)) !== false) {
                             $newConsumedClass = $fileNameProc->getNewFullyQualifiedName();
                             if (strpos($newConsumedClass, $namespace) === 0) {
                                 $newConsumedClass = substr($newConsumedClass, strlen($namespace)+1);
