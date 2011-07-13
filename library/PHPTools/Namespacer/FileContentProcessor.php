@@ -300,7 +300,7 @@ class FileContentProcessor
                     case 'consumedClass':
                         $origConsumedClassName = $token[1];
 
-                        if (in_array($origConsumedClassName, array("self", "static"))) {
+                        if (in_array(mb_strtolower($origConsumedClassName), array("self", "static"))) {
                             $newConsumedClass = $origConsumedClassName;
                         } elseif (($fileNameProc = $this->_fileRegistry->findByOriginalClassName($origConsumedClassName)) !== false) {
                             $newConsumedClass = $fileNameProc->getNewFullyQualifiedName();
