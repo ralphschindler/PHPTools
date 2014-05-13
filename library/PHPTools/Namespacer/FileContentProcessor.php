@@ -250,7 +250,15 @@ class FileContentProcessor
                 if ((strpos($consumedClassName, '\\') !== false) && (strpos($consumedClassName, $namespace) !== 0)) {
                     $consumedClassFileNameProc = $this->_fileRegistry->findByNewFullyQualifiedName($consumedClassName);
                     $uses['declarations'][] = $ccn = $consumedClassFileNameProc->getNewNamespace();
-                    $uses['translations'][$consumedClassName] = substr($ccn, strrpos($ccn, '\\')+1) . '\\'
+                    
+                    $cutStart = strrpos($ccn, '\\');
+                    if (false === $cutStart) {
+                        $cutStart = 0;
+                    } else {
+                        ++$cutStart;
+                    }
+                    
+                    $uses['translations'][$consumedClassName] = substr($ccn, $cutStart) . '\\'
                         . str_replace($ccn . '\\', '', $consumedClassFileNameProc->getNewFullyQualifiedName());
                 }
             }
@@ -291,8 +299,10 @@ class FileContentProcessor
                         break;
                     case 'consumedClass':
                         $origConsumedClassName = $token[1];
-                        $fileNameProc = $this->_fileRegistry->findByOriginalClassName($origConsumedClassName);
-                        if ($fileNameProc) {
+
+                        if (in_array(mb_strtolower($origConsumedClassName), array("self", "static"))) {
+                            $newConsumedClass = $origConsumedClassName;
+                        } elseif (($fileNameProc = $this->_fileRegistry->findByOriginalClassName($origConsumedClassName)) !== false) {
                             $newConsumedClass = $fileNameProc->getNewFullyQualifiedName();
                             if (strpos($newConsumedClass, $namespace) === 0) {
                                 $newConsumedClass = substr($newConsumedClass, strlen($namespace)+1);
@@ -314,7 +324,13 @@ class FileContentProcessor
                             $declarationSearchClass = ltrim($newConsumedClass, '\\');
                             foreach ($uses['declarations'] as $declarationSearchMatch) {
                                 if (strpos($declarationSearchClass, $declarationSearchMatch) === 0) {
-                                    $newConsumedClass = substr($declarationSearchMatch, strrpos($declarationSearchMatch, '\\')+1) . substr($declarationSearchClass, strlen($declarationSearchMatch));
+                                    $cutStart = strrpos($declarationSearchMatch, '\\');
+                                    if (false === $cutStart) {
+                                        $cutStart = 0;
+                                    } else {
+                                        ++$cutStart;
+                                    }
+                                    $newConsumedClass = substr($declarationSearchMatch, $cutStart) . substr($declarationSearchClass, strlen($declarationSearchMatch));
                                 }
                             }
                         }
